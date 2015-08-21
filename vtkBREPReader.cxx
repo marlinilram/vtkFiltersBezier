@@ -33,6 +33,7 @@ vtkBREPReader::~vtkBREPReader()
   this->FileName = NULL;
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -41,31 +42,37 @@ void vtkBREPReader::PrintSelf(ostream& os, vtkIndent indent)
     << (this->FileName ? this->FileName : "(none)") << "\n";
 }
 
+// ----------------------------------------------------------------------
 vtkUnstructuredGrid* vtkBREPReader::GetOutput()
 {
   return this->GetOutput(0);
 }
 
+// ----------------------------------------------------------------------
 vtkUnstructuredGrid* vtkBREPReader::GetOutput(int port)
 {
   return vtkUnstructuredGrid::SafeDownCast(this->GetOutputDataObject(port));
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::SetOutput(vtkDataObject* d)
 {
   this->GetExecutive()->SetOutputData(0, d);
 }
 
+// ----------------------------------------------------------------------
 vtkDataObject* vtkBREPReader::GetInput()
 {
   return this->GetInput(0);
 }
 
+// ----------------------------------------------------------------------
 vtkDataObject* vtkBREPReader::GetInput(int port)
 {
   return this->GetExecutive()->GetInputData(port, 0);
 }
 
+// ----------------------------------------------------------------------
 int vtkBREPReader::ProcessRequest(vtkInformation* request,
                                   vtkInformationVector** inputVector,
                                   vtkInformationVector* outputVector)
@@ -90,6 +97,7 @@ int vtkBREPReader::ProcessRequest(vtkInformation* request,
   return this->Superclass::ProcessRequest(request, inputVector, outputVector);
 }
 
+// ----------------------------------------------------------------------
 int vtkBREPReader::FillOutputPortInformation(
   int vtkNotUsed(port), vtkInformation* info)
 {
@@ -97,6 +105,7 @@ int vtkBREPReader::FillOutputPortInformation(
   return 1;
 }
 
+// ----------------------------------------------------------------------
 int vtkBREPReader::FillInputPortInformation(
   int vtkNotUsed(port), vtkInformation* info)
 {
@@ -104,6 +113,7 @@ int vtkBREPReader::FillInputPortInformation(
   return 1;
 }
 
+// ----------------------------------------------------------------------
 int vtkBREPReader::RequestInformation(
   vtkInformation* vtkNotUsed(request),
   vtkInformationVector** vtkNotUsed(inputVector),
@@ -112,6 +122,7 @@ int vtkBREPReader::RequestInformation(
   return 1;
 }
 
+// ----------------------------------------------------------------------
 int vtkBREPReader::RequestUpdateExtent(
   vtkInformation* vtkNotUsed(request),
   vtkInformationVector** inputVector,
@@ -130,26 +141,31 @@ int vtkBREPReader::RequestUpdateExtent(
   return 1;
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::SetInputData(vtkDataObject* input)
 {
   this->SetInputData(0, input);
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::SetInputData(int index, vtkDataObject* input)
 {
   this->SetInputDataInternal(index, input);
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::AddInputData(vtkDataObject* input)
 {
   this->AddInputData(0, input);
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::AddInputData(int index, vtkDataObject* input)
 {
   this->AddInputDataInternal(index, input);
 }
 
+// ----------------------------------------------------------------------
 int vtkBREPReader::RequestData(
   vtkInformation* vtkNotUsed(request),
   vtkInformationVector** vtkNotUsed(inputVector),
@@ -194,7 +210,7 @@ int vtkBREPReader::RequestData(
       {
         int surface_type;
         in >> surface_type;
-        if (surface_type == 9) 
+        if (surface_type == 9)
         {
           //std::cout<<"A NURBS Patch!\n";
         }
@@ -207,14 +223,15 @@ int vtkBREPReader::RequestData(
   return 1;
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandleSurface(std::ifstream& in, int shapeType, vtkDataObject* out)
 {
   enum {
-    PLANE = 1, 
-    CYLINDER = 2, 
-    CONE = 3, 
-    SPHERE = 4, 
-    TORUS = 5, 
+    PLANE = 1,
+    CYLINDER = 2,
+    CONE = 3,
+    SPHERE = 4,
+    TORUS = 5,
     LINEAREXTRUSION = 6,
     REVOLUTION = 7,
     BEZIER = 8,
@@ -263,10 +280,11 @@ void vtkBREPReader::HandleSurface(std::ifstream& in, int shapeType, vtkDataObjec
    }
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandleCurve(std::ifstream& in, int shapeType, vtkDataObject* out)
 {
   enum {
-    LINE = 1, 
+    LINE = 1,
     CIRCLE = 2,
     ELLIPSE = 3,
     PARABOLA = 4,
@@ -309,6 +327,7 @@ void vtkBREPReader::HandleCurve(std::ifstream& in, int shapeType, vtkDataObject*
   }
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandlePlane(std::ifstream& in, vtkDataObject* out)
 {
   std::string out_buffer;
@@ -321,55 +340,58 @@ void vtkBREPReader::HandlePlane(std::ifstream& in, vtkDataObject* out)
   out = out;
 }
 
-void vtkBREPReader::HandleCylinder(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------------
+void vtkBREPReader::HandleCylinder(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 13; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
 
-void vtkBREPReader::HandleCone(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleCone(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 14; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
 
-void vtkBREPReader::HandleShpere(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleShpere(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 13; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
 
-void vtkBREPReader::HandleTorus(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleTorus(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 14; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
 
-void vtkBREPReader::HandleLinearextrusion(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleLinearextrusion(
+  std::ifstream& in,
+  vtkDataObject* out)
 {
   double Dv[3];
   in >> Dv[0] >> Dv[1] >> Dv[2];
@@ -379,6 +401,7 @@ void vtkBREPReader::HandleLinearextrusion(std::ifstream& in, vtkDataObject* out)
   this->HandleCurve(in, curve_type, out);
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandleRevolution(std::ifstream& in, vtkDataObject* out)
 {
   double P[3];
@@ -390,6 +413,7 @@ void vtkBREPReader::HandleRevolution(std::ifstream& in, vtkDataObject* out)
   this->HandleCurve(in, curve_type, out);
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandleBezierSurface(std::ifstream& in, vtkDataObject* out)
 {
   int sample[2] = {20,20};
@@ -424,17 +448,18 @@ void vtkBREPReader::HandleBezierSurface(std::ifstream& in, vtkDataObject* out)
 
   vtkSmartPointer<vtkPatchInterpolation> patchInterp = vtkSmartPointer<vtkPatchInterpolation>::New();
   patchInterp->GenerateShape(
-    vtkUnstructuredGrid::SafeDownCast(out), 
+    vtkUnstructuredGrid::SafeDownCast(out),
     sample, 2, ctrlPts, degree);
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandleBsplineSurface(std::ifstream& in, vtkDataObject* out)
 {
   int u_r_flag, v_r_flag;
   int u_period, v_period;
   in >> u_r_flag >> v_r_flag;
   in >> u_period >> v_period;
-  
+
   int u_degree, v_degree;
   int u_ctrlPt_num, v_ctrlPt_num;
   int u_knot_len, v_knot_len;
@@ -523,6 +548,7 @@ void vtkBREPReader::HandleBsplineSurface(std::ifstream& in, vtkDataObject* out)
   nurbsAdaptor->GetPatchShape(vtkUnstructuredGrid::SafeDownCast(out));
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandleRectangular(std::ifstream& in, vtkDataObject* out)
 {
   double umin, umax, vmin, vmax;
@@ -533,6 +559,7 @@ void vtkBREPReader::HandleRectangular(std::ifstream& in, vtkDataObject* out)
   this->HandleSurface(in, surface_type, out);
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandleOffset(std::ifstream& in, vtkDataObject* out)
 {
   double d;
@@ -543,62 +570,67 @@ void vtkBREPReader::HandleOffset(std::ifstream& in, vtkDataObject* out)
   this->HandleSurface(in, surface_type, out);
 }
 
-void vtkBREPReader::HandleLine(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleLine(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 6; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
-void vtkBREPReader::HandleCircle(std::ifstream& in, vtkDataObject* out)
+
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleCircle(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 13; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
-void vtkBREPReader::HandleEllipse(std::ifstream& in, vtkDataObject* out)
+
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleEllipse(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 14; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
-void vtkBREPReader::HandleParabola(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleParabola(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 13; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
-void vtkBREPReader::HandleHyperbola(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleHyperbola(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 14; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
-void vtkBREPReader::HandleBezierCurve(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleBezierCurve(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   int rational;
   in >> rational;
@@ -618,11 +650,11 @@ void vtkBREPReader::HandleBezierCurve(std::ifstream& in, vtkDataObject* out)
       pts[2] *= pts[3];
     }
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
-void vtkBREPReader::HandleBsplineCurve(std::ifstream& in, vtkDataObject* out)
+// ----------------------------------------------------------------------
+void vtkBREPReader::HandleBsplineCurve(
+  std::ifstream& in,
+  vtkDataObject* vtkNotUsed(out))
 {
   int rational;
   int period;
@@ -650,11 +682,9 @@ void vtkBREPReader::HandleBsplineCurve(std::ifstream& in, vtkDataObject* out)
     int multi;
     in >> knots >> multi;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandleTrimmed(std::ifstream& in, vtkDataObject* out)
 {
   double u_min, u_max;
@@ -665,6 +695,7 @@ void vtkBREPReader::HandleTrimmed(std::ifstream& in, vtkDataObject* out)
   this->HandleCurve(in, curve_type, out);
 }
 
+// ----------------------------------------------------------------------
 void vtkBREPReader::HandleOffsetCurve(std::ifstream& in, vtkDataObject* out)
 {
   double d;

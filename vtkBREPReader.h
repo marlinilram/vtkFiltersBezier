@@ -1,3 +1,28 @@
+/*=========================================================================
+
+  Program:   Visualization Toolkit
+  Module:    vtkBREPReader.h
+
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  All rights reserved.
+  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notice for more information.
+
+=========================================================================*/
+//.NAME vtkBREPReader ¨C reader for .brep file
+//.SECTION Description
+// vtkBREPReader can read and processed the bezier and nurbs patch in .brep
+// files and return vtkUnstructuredGrid for visualization.
+// Currently only a small part of shapes defined in brep file can be processed,
+// the rest will be added in the future.
+//
+// The class should be initialized with the fileName and it will return a
+// vtkUnstructuredGrid which contains the triangle mesh of the input file for
+// visualization.
+
 #ifndef vtkBREPReader_h
 #define vtkBREPReader_h
 
@@ -76,6 +101,9 @@ protected:
   virtual int FillOutputPortInformation(int port, vtkInformation* info);
   virtual int FillInputPortInformation(int port, vtkInformation* info);
 
+  // Description:
+  // Process different type of shape in BREP files.
+  // Only bezier and nurbs surface are implemented now.
   void HandleSurface(std::ifstream& in, int shapeType, vtkDataObject* out);
   void HandlePlane(std::ifstream& in, vtkDataObject* out);
   void HandleCylinder(std::ifstream& in, vtkDataObject* out);

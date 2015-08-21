@@ -28,7 +28,7 @@ vtkNURBSPatchAdaptor::vtkNURBSPatchAdaptor()
 
 vtkNURBSPatchAdaptor::~vtkNURBSPatchAdaptor()
 {
-  if (this->ControlPointData && 
+  if (this->ControlPointData &&
   this->ControlPointData->GetReferenceCount() == 1)
     {
     this->ControlPointData->Delete();
@@ -45,29 +45,34 @@ void vtkNURBSPatchAdaptor::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 }
 
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::SetControlPointData(vtkDataObject* controlPointData)
 {
   this->ControlPointData = controlPointData;
   controlPointData->Register(this);
 }
 
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::Begin()
 {
 
 }
 
+// ----------------------------------------------------------------------------
 bool vtkNURBSPatchAdaptor::IsAtEnd()
 {
   return false;
 }
 
+// ----------------------------------------------------------------------------
 bool vtkNURBSPatchAdaptor::GoToPatch(vtkIdType patchId) // random access iteration
 {
   patchId = 0;
-  vtkWarningMacro("Not implmented yet, set patchId = 0.");
+  vtkErrorMacro("Not implmented yet, set patchId = 0.");
   return false;
 }
 
+// ----------------------------------------------------------------------------
 bool vtkNURBSPatchAdaptor::Next()
 {
   return false;
@@ -93,20 +98,22 @@ int vtkNURBSPatchAdaptor::GetPatchDimension() const
     }
   else
     {
-    std::cout << "Dimension of NURBS can not be zero.\n";
     return 0;
     }
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::GetPatchShape() const
-// returns VTK_TRIANGLE/VTK_QUAD when PatchDimension==2, returns VTK_HEXAHEDRON/VTK_TETRA when PatchDimension==3
 {
-
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::GetPatchDegree(int* degreeOut) const
 {
   int nurbsDim = this->GetPatchDimension();
-  vtkStructuredGrid* nurbs = vtkStructuredGrid::SafeDownCast(this->ControlPointData);
-  int* knotsLen = static_cast<int*>(nurbs->GetFieldData()->GetArray("KnotsLen")->GetVoidPointer(0));
+  vtkStructuredGrid* nurbs =
+    vtkStructuredGrid::SafeDownCast(this->ControlPointData);
+  int* knotsLen =
+    static_cast<int*>(
+      nurbs->GetFieldData()->GetArray("KnotsLen")->GetVoidPointer(0));
 
   std::vector<int> ctrlPtsNum(3, 0);
   nurbs->GetDimensions(&ctrlPtsNum[0]);
@@ -115,14 +122,21 @@ void vtkNURBSPatchAdaptor::GetPatchDegree(int* degreeOut) const
     degreeOut[i] = knotsLen[i] - ctrlPtsNum[i] - 1;
     }
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::GetPatchParameterRange(double* paramsOut) const
 {
-  vtkStructuredGrid* nurbs = vtkStructuredGrid::SafeDownCast(this->ControlPointData);
+  vtkStructuredGrid* nurbs =
+    vtkStructuredGrid::SafeDownCast(this->ControlPointData);
 
-  int* knotsLenPtr = static_cast<int*>(nurbs->GetFieldData()->GetArray("KnotsLen")->GetVoidPointer(0));
-  double* knotsArrPtr = static_cast<double*>(nurbs->GetFieldData()->GetArray("Knots")->GetVoidPointer(0));
+  int* knotsLenPtr =
+    static_cast<int*>(
+      nurbs->GetFieldData()->GetArray("KnotsLen")->GetVoidPointer(0));
+  double* knotsArrPtr
+     = static_cast<double*>(
+      nurbs->GetFieldData()->GetArray("Knots")->GetVoidPointer(0));
   std::vector<int> knotsLen(knotsLenPtr, knotsLenPtr + 3);
-  std::vector<double> knotsArr(knotsArrPtr, knotsArrPtr + knotsLen[0] + knotsLen[1] + knotsLen[2]);
+  std::vector<double> knotsArr(
+    knotsArrPtr, knotsArrPtr + knotsLen[0] + knotsLen[1] + knotsLen[2]);
 
   std::vector<int> ctrlPtsNum(3, 0);
   nurbs->GetDimensions(&ctrlPtsNum[0]);
@@ -139,9 +153,11 @@ void vtkNURBSPatchAdaptor::GetPatchParameterRange(double* paramsOut) const
     paramsOut[2*i + 1] = knotsArr[knotStart + knotsLen[i] - 1 - degree[i]];
     }
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::GetPatchPoints(vtkPoints* pointsOut) const
 {
-  vtkUnstructuredGrid* nurbs = vtkUnstructuredGrid::SafeDownCast(this->ControlPointData);
+  vtkUnstructuredGrid* nurbs =
+    vtkUnstructuredGrid::SafeDownCast(this->ControlPointData);
   pointsOut = nurbs->GetPoints();
 }
 
@@ -150,38 +166,53 @@ void vtkNURBSPatchAdaptor::GetPatchShape(vtkUnstructuredGrid* outputSp)
 {
   // Several instructions:
   // 1. knot vector representation
-  // - a knot vector [1,2,3,4,5,6,7,8] for a n-degree curve means parameter ranges [t_{n-1}, t_{m-n+1}]
-  // - for historical reasons, there will be a (meaningless) additional knot at the beginning and
-  //   end of a knot vector e.g. [t_0,1,2,3,4,5,6,7,8,t_9]
+  // - a knot vector [1,2,3,4,5,6,7,8] for a n-degree curve means parameter
+  //   ranges [t_{n-1}, t_{m-n+1}]
+  // - for historical reasons, there will be a (meaningless) additional knot at
+  //   the beginning and end of a knot vector e.g. [t_0,1,2,3,4,5,6,7,8,t_9]
   // 2. convert NURBS to bezier
-  // - given a full knot vector [t_0,...,t_m] (with additional knots) find the parameter range which
-  //   is [t_n, t_{m-n}]
-  // - insert knot until each knot in the range has multiplicity n then we will get a series of
-  //   bezier curves
+  // - given a full knot vector [t_0,...,t_m] (with additional knots) find the
+  //   parameter range which is [t_n, t_{m-n}]
+  // - insert knot until each knot in the range has multiplicity n then we will
+  // get a series of bezier curves
 
-  vtkStructuredGrid* nurbs = vtkStructuredGrid::SafeDownCast(this->ControlPointData);
+  vtkStructuredGrid* nurbs =
+    vtkStructuredGrid::SafeDownCast(this->ControlPointData);
 
-  int* knotsLen = static_cast<int*>(nurbs->GetFieldData()->GetArray("KnotsLen")->GetVoidPointer(0));
-  double* knotsArr = static_cast<double*>(nurbs->GetFieldData()->GetArray("Knots")->GetVoidPointer(0));
+  int* knotsLen =
+    static_cast<int*>(
+      nurbs->GetFieldData()->GetArray("KnotsLen")->GetVoidPointer(0));
+  double* knotsArr =
+    static_cast<double*>(
+      nurbs->GetFieldData()->GetArray("Knots")->GetVoidPointer(0));
 
   std::vector<int> knotsLenOld(knotsLen, knotsLen + 3);
   std::vector<int> knotsLenNew = knotsLenOld;
-  std::vector<double> knotsArrOld(knotsArr, knotsArr + knotsLen[0] + knotsLen[1] + knotsLen[2]);
+  std::vector<double> knotsArrOld(
+    knotsArr, knotsArr + knotsLen[0] + knotsLen[1] + knotsLen[2]);
   std::vector<double> knotsArrNew = knotsArrOld;
   std::vector<int> ctrlPtsNumOld(3, 0);
   nurbs->GetDimensions(&ctrlPtsNumOld[0]);
   std::vector<int> ctrlPtsNumNew = ctrlPtsNumOld;
   int nurbsDim = 1;
   if (ctrlPtsNumOld[0] == 1)
-    std::cout << "Dimension of NURBS can not be zero.\n";
+    {
+    vtkErrorMacro(<< "Dimension of NURBS can not be zero.");
+    }
   else if (ctrlPtsNumOld[2] > 1)
+    {
     nurbsDim = 3;
+    }
   else if (ctrlPtsNumOld[1] > 1)
+    {
     nurbsDim = 2;
+    }
 
-  vtkSmartPointer<vtkDoubleArray> pointsIn = vtkSmartPointer<vtkDoubleArray>::New();
+  vtkSmartPointer<vtkDoubleArray> pointsIn =
+    vtkSmartPointer<vtkDoubleArray>::New();
   pointsIn->DeepCopy(nurbs->GetPointData()->GetArray("ControlPolygon"));
-  vtkSmartPointer<vtkDoubleArray> pointsOut = vtkSmartPointer<vtkDoubleArray>::New();
+  vtkSmartPointer<vtkDoubleArray> pointsOut =
+    vtkSmartPointer<vtkDoubleArray>::New();
 
   int knotStart = 0;
   bool tag = true;
@@ -256,7 +287,9 @@ void vtkNURBSPatchAdaptor::GetPatchShape(vtkUnstructuredGrid* outputSp)
           kSpan, sMult);
 
         if (degree == sMult)
+          {
           continue;
+          }
 
         knotsArrOld.resize(knotsArrNew.size() + degree - sMult);
         this->InsertKnotMulti(
@@ -281,8 +314,8 @@ void vtkNURBSPatchAdaptor::GetPatchShape(vtkUnstructuredGrid* outputSp)
   //outputSp->SetPoints(outputSpPts);
   //outputSp->Allocate();
 
-  // outputSp should initialize its memory allocation outside of the function, for it would happen
-  // that the whole shape consists of several nurbs surfaces
+  // outputSp should initialize its memory allocation outside of the function,
+  // for it would happen when the whole shape consists of several nurbs patches
 
   int degree[3] = {0,0,0};
   int ptAxisStart[3] = {0,0,0};
@@ -329,7 +362,8 @@ void vtkNURBSPatchAdaptor::GetPatchShape(vtkUnstructuredGrid* outputSp)
 // Point Inversion related method
 void vtkNURBSPatchAdaptor::PointInversion(double Pt[3], double* Paras)
 {
-  vtkStructuredGrid* nurbs = vtkStructuredGrid::SafeDownCast(this->ControlPointData);
+  vtkStructuredGrid* nurbs =
+    vtkStructuredGrid::SafeDownCast(this->ControlPointData);
 
   std::vector<int> ctrlPtsNum(3, 0);
   nurbs->GetDimensions(&ctrlPtsNum[0]);
@@ -348,26 +382,28 @@ void vtkNURBSPatchAdaptor::PointInversion(double Pt[3], double* Paras)
     }
   else
     {
-    std::cout << "Dimension of NURBS can not be zero.\n";
+    vtkErrorMacro(<< "Dimension of NURBS can not be zero.");
     }
 }
 
 // Point evaluation related method
 void vtkNURBSPatchAdaptor::EvaluatePoint(double Pt[3], double* Paras)
 {
-  // we insert the given Paras to original knot vectors until the multiplicity reaches degree times
-  // and get the corresponding control point it will be the Point on the patch
+  // we insert the given Paras to original knot vectors until the multiplicity
+  // reaches degree times and get the corresponding control point it will be
+  // the Point on the patch
 
-  int PtIdx = 1;
+  int PtIdx = 0;
 
   this->InsertKnotForEval(Paras, PtIdx);
 
   // get the control point corresponding to the paras
-  double* Ptw = this->PointsCache->GetTuple4(PtIdx - 1);
+  double* Ptw = this->PointsCache->GetTuple4(PtIdx);
   Pt[0] = Ptw[0] / Ptw[3];
   Pt[1] = Ptw[1] / Ptw[3];
   Pt[2] = Ptw[2] / Ptw[3];
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::EvaluateDeriv(double Pt[3], double* Paras, int d)
 {
   if (d >= 3)
@@ -393,8 +429,9 @@ void vtkNURBSPatchAdaptor::EvaluateDeriv(double Pt[3], double* Paras, int d)
   }
 }
 
-// Internal computation method for find span, multiplicity and insertion
-void vtkNURBSPatchAdaptor::FindKnotStart(int* lenKnot, int dim, int& knotStart) const
+// Internal computation method to find span, multiplicity and insertion
+void vtkNURBSPatchAdaptor::FindKnotStart(
+  int* lenKnot, int dim, int& knotStart) const
 {
   knotStart = 0;
   for (int i = 0; i < dim; ++i)
@@ -402,6 +439,7 @@ void vtkNURBSPatchAdaptor::FindKnotStart(int* lenKnot, int dim, int& knotStart) 
     knotStart += lenKnot[i];
     }
 }
+// ----------------------------------------------------------------------------
 int vtkNURBSPatchAdaptor::FindSpan(double tNew, int lenKnot, double* knot)
 {
   // Find where to insert the new knot.
@@ -431,6 +469,7 @@ int vtkNURBSPatchAdaptor::FindSpan(double tNew, int lenKnot, double* knot)
     }
   return mid;
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::FindSpanMult(
   double tNew, int lenKnot, double* knot,
   int& kSpan, int& sMult)
@@ -444,7 +483,7 @@ void vtkNURBSPatchAdaptor::FindSpanMult(
     ++sMult;
     }
 }
-
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::FetchBezierPatch(
   vtkUnstructuredGrid* shape,
   vtkDataArray* ctrlPts, int nurbsDim,
@@ -477,9 +516,10 @@ void vtkNURBSPatchAdaptor::FetchBezierPatch(
       }
     }
 
-  patchInterpolation->GenerateShape(shape, sample, nurbsDim, bezierCtrlPts, degree);
+  patchInterpolation->GenerateShape(
+    shape, sample, nurbsDim, bezierCtrlPts, degree);
 }
-
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::InsertKnot(
   vtkDataArray* pointsIn, int* knotsLen, double* knotsArr, int* ctrlPtsNum,
   vtkDataArray* pointsOut, int* knotsLenNew, double* knotsArrNew, int* ctrlPtsNumNew,
@@ -501,7 +541,9 @@ void vtkNURBSPatchAdaptor::InsertKnot(
 
   // find the knot span where the new knot is
   if (k == -1)
+    {
     k = FindSpan(tNew, knotsLen[insertDim], &knotsArr[knot_start]);
+    }
 
   // copy old knots array to new knots array
   std::memcpy(knotsLenNew, knotsLen, 3*sizeof(knotsLen));
@@ -551,8 +593,6 @@ void vtkNURBSPatchAdaptor::InsertKnot(
           alpha = (tNew - knotsArr[knot_start + i])
             / (knotsArr[knot_start + i + p] - knotsArr[knot_start + i]);
 
-          std::cout<<"i:\t"<<i<<"\talpha:\t"<<alpha<<"\n";
-
           vtkIdType ptIdxOld =
             ptIter[2]*ctrlPtsNum[1]*ctrlPtsNum[0] +
             ptIter[1]*ctrlPtsNum[0] +
@@ -574,9 +614,6 @@ void vtkNURBSPatchAdaptor::InsertKnot(
             alpha * ptOld[1] + (1 - alpha) * ptOldPrev[1],
             alpha * ptOld[2] + (1 - alpha) * ptOldPrev[2],
             alpha * ptOld[3] + (1 - alpha) * ptOldPrev[3]);
-
-          std::cout<<"Old Pt "<<ptIdxOld<<":\t"<<ptOld[0]<<"\t"<<ptOld[1]<<"\t"<<ptOld[2]<<"\t"<<ptOld[3]<<"\n";
-          std::cout<<"Old Pt Prev"<<ptIdxOldPrev<<":\t"<<ptOldPrev[0]<<"\t"<<ptOldPrev[1]<<"\t"<<ptOldPrev[2]<<"\t"<<ptOldPrev[3]<<"\n";
           }
         else
           {
@@ -596,6 +633,7 @@ void vtkNURBSPatchAdaptor::InsertKnot(
       }
     }
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::InsertKnotMulti(
   vtkDataArray* pointsIn, int* knotsLenOld, double* knotsArrOld, int* ctrlPtsNumOld,
   vtkDataArray* pointsOut, int* knotsLenNew, double* knotsArrNew, int* ctrlPtsNumNew,
@@ -621,82 +659,112 @@ void vtkNURBSPatchAdaptor::InsertKnotMulti(
   if (sMult == -1)
     {
     sMult = 0; // multiplicity of tNew
-    for (int i = kSpan; i >= 0 && abs(knotsArrOld[knot_start+i]-tNew)<=1e-5; --i)
+    for (int i = kSpan;
+      i >= 0 && abs(knotsArrOld[knot_start + i] - tNew) <= 1e-5;
+      --i)
       {
       ++sMult;
       }
     }
-  //std::cout<<"kSpan: "<<kSpan<<"\tsMult: "<<sMult<<"\n";
 
   // copy old knots array to new knots array
-  std::memcpy(knotsLenNew, knotsLenOld, 3*sizeof(knotsLenOld));
+  std::memcpy(knotsLenNew, knotsLenOld, 3 * sizeof(knotsLenOld));
   knotsLenNew[insertDim] += insertTimes;
-  std::memcpy(knotsArrNew, knotsArrOld, (knot_start+kSpan+1)*sizeof(knotsArrOld));
+  std::memcpy(
+    knotsArrNew,
+    knotsArrOld,
+    (knot_start + kSpan + 1) * sizeof(knotsArrOld));
   for (int i = 1; i <= insertTimes; ++i)
     {
-    knotsArrNew[knot_start+kSpan+i] = tNew;
+    knotsArrNew[knot_start + kSpan + i] = tNew;
     }
-  std::memcpy(knotsArrNew+knot_start+kSpan+insertTimes+1, knotsArrOld+knot_start+kSpan+1,
-    (knotsLenOld[0]+knotsLenOld[1]+knotsLenOld[2]-knot_start-kSpan-1)*sizeof(knotsArrOld));
+  std::memcpy(
+    knotsArrNew + knot_start + kSpan + insertTimes + 1,
+    knotsArrOld + knot_start + kSpan + 1,
+    (knotsLenOld[0]
+      + knotsLenOld[1]
+      + knotsLenOld[2]
+      - knot_start - kSpan - 1) * sizeof(knotsArrOld));
 
   // copy old control points to new control points
-  std::memcpy(ctrlPtsNumNew, ctrlPtsNumOld, 3*sizeof(ctrlPtsNumOld));
+  std::memcpy(ctrlPtsNumNew, ctrlPtsNumOld, 3 * sizeof(ctrlPtsNumOld));
   ctrlPtsNumNew[insertDim] += insertTimes;
-  vtkIdType totalCPoints = ctrlPtsNumNew[0]*ctrlPtsNumNew[1]*ctrlPtsNumNew[2];
+  vtkIdType totalCPoints =
+    ctrlPtsNumNew[0] * ctrlPtsNumNew[1] * ctrlPtsNumNew[2];
   pointsOut->SetNumberOfComponents(4);
   pointsOut->SetNumberOfTuples(totalCPoints);
 
 
-  // To iterate the axis based on which dimension we want to insert knots we define step length to
-  // help read data in different way For example, if insertDim = 1 which is the Y axis we hope to
-  // iterate the point data like this: first from (0,0,0) to (0,maxIdY,0) then (1,0,0) to
-  // (1,maxIdY,0) ... until (maxIdX,0,0) to (maxIdX,maxIdY,0) then axis Z move one step (0,0,1) to
-  // (maxIdX,maxIdY,1) So here majorStep is for axis X for it moves faster minorStep is for axis Z
-  // for it moves slower insertStep is for axis Y for which we insert knots to make the code concise
-  // use int ptStep[3] to store the variables ptStep[0] stores insertStep ptStep[1] stores majorStep
-  // ptStep[2] stores minorStep
+  // To iterate the axis based on which dimension we want to insert knots
+  // we define step length to help read data in different way For example,
+  // if insertDim = 1 which is the Y axis we hope to iterate the point data
+  // like this: first from (0,0,0) to (0,maxIdY,0) then (1,0,0) to
+  // (1, maxIdY, 0) ... until (maxIdX,0,0) to (maxIdX,maxIdY,0) then axis Z
+  // move one step (0,0,1) to (maxIdX, maxIdY, 1). So here majorStep is for
+  // axis X for it moves faster minorStep is for axis Z for it moves slower
+  // insertStep is for axis Y for which we insert knots to make the code
+  // concise use int ptStep[3] to store the variables ptStep[0] stores
+  // insertStep ptStep[1] stores majorStep ptStep[2] stores minorStep.
   int ptStepNew[3]; int ptMaxNew[3];
   int ptStepOld[3]; int ptMaxOld[3];
   switch (insertDim)
     {
   case 0:
     // insert from axis X
-    ptStepNew[0] = 1; ptStepNew[1] = ctrlPtsNumNew[0]; ptStepNew[2] = ctrlPtsNumNew[0]*ctrlPtsNumNew[1];
-    ptStepOld[0] = 1; ptStepOld[1] = ctrlPtsNumOld[0]; ptStepOld[2] = ctrlPtsNumOld[0]*ctrlPtsNumOld[1];
+    ptStepNew[0] = 1;
+    ptStepNew[1] = ctrlPtsNumNew[0];
+    ptStepNew[2] = ctrlPtsNumNew[0] * ctrlPtsNumNew[1];
+    ptStepOld[0] = 1;
+    ptStepOld[1] = ctrlPtsNumOld[0];
+    ptStepOld[2] = ctrlPtsNumOld[0] * ctrlPtsNumOld[1];
 
-    ptMaxNew[0] = ctrlPtsNumNew[0]; ptMaxNew[1] = ctrlPtsNumNew[1]; ptMaxNew[2] = ctrlPtsNumNew[2];
-    ptMaxOld[0] = ctrlPtsNumOld[0]; ptMaxNew[1] = ctrlPtsNumOld[1]; ptMaxNew[2] = ctrlPtsNumOld[2];
+    ptMaxNew[0] = ctrlPtsNumNew[0];
+    ptMaxNew[1] = ctrlPtsNumNew[1];
+    ptMaxNew[2] = ctrlPtsNumNew[2];
+    ptMaxOld[0] = ctrlPtsNumOld[0];
+    ptMaxNew[1] = ctrlPtsNumOld[1];
+    ptMaxNew[2] = ctrlPtsNumOld[2];
     break;
   case 1:
     // insert from axis Y
-    ptStepNew[0] = ctrlPtsNumNew[0]; ptStepNew[1] = 1; ptStepNew[2] = ctrlPtsNumNew[0]*ctrlPtsNumNew[1];
-    ptStepOld[0] = ctrlPtsNumOld[0]; ptStepOld[1] = 1; ptStepOld[2] = ctrlPtsNumOld[0]*ctrlPtsNumOld[1];
+    ptStepNew[0] = ctrlPtsNumNew[0];
+    ptStepNew[1] = 1;
+    ptStepNew[2] = ctrlPtsNumNew[0] * ctrlPtsNumNew[1];
+    ptStepOld[0] = ctrlPtsNumOld[0];
+    ptStepOld[1] = 1;
+    ptStepOld[2] = ctrlPtsNumOld[0] * ctrlPtsNumOld[1];
 
-    ptMaxNew[0] = ctrlPtsNumNew[1]; ptMaxNew[1] = ctrlPtsNumNew[0]; ptMaxNew[2] = ctrlPtsNumNew[2];
-    ptMaxOld[0] = ctrlPtsNumOld[1]; ptMaxNew[1] = ctrlPtsNumOld[0]; ptMaxNew[2] = ctrlPtsNumOld[2];
+    ptMaxNew[0] = ctrlPtsNumNew[1];
+    ptMaxNew[1] = ctrlPtsNumNew[0];
+    ptMaxNew[2] = ctrlPtsNumNew[2];
+    ptMaxOld[0] = ctrlPtsNumOld[1];
+    ptMaxNew[1] = ctrlPtsNumOld[0];
+    ptMaxNew[2] = ctrlPtsNumOld[2];
     break;
   case 2:
     // insert from axis Z
-    ptStepNew[0] = ctrlPtsNumNew[0]*ctrlPtsNumNew[1]; ptStepNew[1] = 1; ptStepNew[2] = ctrlPtsNumNew[0];
-    ptStepOld[0] = ctrlPtsNumOld[0]*ctrlPtsNumOld[1]; ptStepOld[1] = 1; ptStepOld[2] = ctrlPtsNumOld[0];
+    ptStepNew[0] = ctrlPtsNumNew[0] * ctrlPtsNumNew[1];
+    ptStepNew[1] = 1;
+    ptStepNew[2] = ctrlPtsNumNew[0];
+    ptStepOld[0] = ctrlPtsNumOld[0] * ctrlPtsNumOld[1];
+    ptStepOld[1] = 1;
+    ptStepOld[2] = ctrlPtsNumOld[0];
 
-    ptMaxNew[0] = ctrlPtsNumNew[2]; ptMaxNew[1] = ctrlPtsNumNew[0]; ptMaxNew[2] = ctrlPtsNumNew[1];
-    ptMaxOld[0] = ctrlPtsNumOld[2]; ptMaxNew[1] = ctrlPtsNumOld[0]; ptMaxNew[2] = ctrlPtsNumOld[1];
+    ptMaxNew[0] = ctrlPtsNumNew[2];
+    ptMaxNew[1] = ctrlPtsNumNew[0];
+    ptMaxNew[2] = ctrlPtsNumNew[1];
+    ptMaxOld[0] = ctrlPtsNumOld[2];
+    ptMaxNew[1] = ctrlPtsNumOld[0];
+    ptMaxNew[2] = ctrlPtsNumOld[1];
     break;
   default:
     break;
     }
-  //std::cout<<"ptMaxNew[1]: "<<ptMaxNew[1]<<"\nptMaxNew[2]: "<<ptMaxNew[2]<<"\n";
+
   int p = knotsLenOld[insertDim] - ctrlPtsNumOld[insertDim] - 1;
   std::vector<std::vector<double>> Rw(p+1, std::vector<double>(4,0));
-  std::vector<std::vector<double>> alpha(p-sMult, std::vector<double>(insertTimes+1, 0));
-  //std::vector<std::vector<double>> alfa(ptMaxOld[0], std::vector<double>(ptMaxNew[0], 0));
-  // implement oslo algorithm here
-  // compute alfa
-  //for (int i = 0; i < )
-  //{
-  //}
-
+  std::vector<std::vector<double>> alpha(
+    p-sMult, std::vector<double>(insertTimes+1, 0));
 
   // store alpha
   for (int j = 1; j <= insertTimes; ++j)
@@ -706,7 +774,8 @@ void vtkNURBSPatchAdaptor::InsertKnotMulti(
       {
       alpha[i][j] =
         (tNew - knotsArrOld[knot_start + L + i]) /
-        (knotsArrOld[knot_start + kSpan + i + 1] - knotsArrOld[knot_start + L + i]);
+        (knotsArrOld[knot_start + kSpan + i + 1]
+        - knotsArrOld[knot_start + L + i]);
       }
     }
   // compute new control points
@@ -716,48 +785,69 @@ void vtkNURBSPatchAdaptor::InsertKnotMulti(
       {
       for (int k = 0; k <= kSpan - p; ++k)
         {
-        vtkIdType ptIdxNew = k*ptStepNew[0] + j*ptStepNew[1] + i*ptStepNew[2];
-        vtkIdType ptIdxOld = k*ptStepOld[0] + j*ptStepOld[1] + i*ptStepOld[2];
+        // save unaltered control points
+        vtkIdType ptIdxNew =
+          k * ptStepNew[0] + j * ptStepNew[1] + i * ptStepNew[2];
+        vtkIdType ptIdxOld =
+          k * ptStepOld[0] + j * ptStepOld[1] + i * ptStepOld[2];
         double* ptOld = pointsIn->GetTuple(ptIdxOld);
         pointsOut->SetTuple4(
           ptIdxNew,
           ptOld[0], ptOld[1], ptOld[2], ptOld[3]);
         }
-      //std::cout<<"test1\n";
       for (int k = kSpan - sMult; k < ptMaxOld[0]; ++k)
         {
-        vtkIdType ptIdxNew = (k+insertTimes)*ptStepNew[0] + j*ptStepNew[1] + i*ptStepNew[2];
-        vtkIdType ptIdxOld = k*ptStepOld[0] + j*ptStepOld[1] + i*ptStepOld[2];
+        vtkIdType ptIdxNew =
+          (k + insertTimes) * ptStepNew[0]
+          + j * ptStepNew[1]
+          + i * ptStepNew[2];
+        vtkIdType ptIdxOld =
+          k * ptStepOld[0]
+          + j * ptStepOld[1]
+          + i * ptStepOld[2];
         double* ptOld = pointsIn->GetTuple(ptIdxOld);
         pointsOut->SetTuple4(
           ptIdxNew,
           ptOld[0], ptOld[1], ptOld[2], ptOld[3]);
         }
-      //std::cout<<"test2\n";
       for (int k = 0; k <= p - sMult; ++k)
         {
-        vtkIdType ptIdxOld = (kSpan - p + k)*ptStepOld[0] + j*ptStepOld[1] + i*ptStepOld[2];
+        vtkIdType ptIdxOld =
+          (kSpan - p + k) * ptStepOld[0]
+          + j * ptStepOld[1]
+          + i * ptStepOld[2];
         double* ptOld = pointsIn->GetTuple(ptIdxOld);
-        Rw[k][0] = ptOld[0]; Rw[k][1] = ptOld[1]; Rw[k][2] = ptOld[2]; Rw[k][3] = ptOld[3];
+        Rw[k][0] = ptOld[0];
+        Rw[k][1] = ptOld[1];
+        Rw[k][2] = ptOld[2];
+        Rw[k][3] = ptOld[3];
         }
 
-      int L = 0;
+      int L = kSpan - p;
       for (int kk = 1; kk <= insertTimes; ++kk)
         {
         L = kSpan - p + kk;
         for (int k = 0; k <= p - kk - sMult; ++k)
           {
-          //double alpha =
-          //  (tNew - knotsArrOld[knot_start + L + k]) /
-          //  (knotsArrOld[knot_start + k + kSpan + 1] - knotsArrOld[knot_start + L + k]);
-          Rw[k][0] = alpha[k][kk]*Rw[k + 1][0] + (1.0 - alpha[k][kk])*Rw[k][0];
-          Rw[k][1] = alpha[k][kk]*Rw[k + 1][1] + (1.0 - alpha[k][kk])*Rw[k][1];
-          Rw[k][2] = alpha[k][kk]*Rw[k + 1][2] + (1.0 - alpha[k][kk])*Rw[k][2];
-          Rw[k][3] = alpha[k][kk]*Rw[k + 1][3] + (1.0 - alpha[k][kk])*Rw[k][3];
+          Rw[k][0] =
+            alpha[k][kk] * Rw[k + 1][0]
+            + (1.0 - alpha[k][kk]) * Rw[k][0];
+          Rw[k][1] =
+            alpha[k][kk] * Rw[k + 1][1]
+            + (1.0 - alpha[k][kk]) * Rw[k][1];
+          Rw[k][2] =
+            alpha[k][kk] * Rw[k + 1][2]
+            + (1.0 - alpha[k][kk]) * Rw[k][2];
+          Rw[k][3] =
+            alpha[k][kk] * Rw[k + 1][3]
+            + (1.0 - alpha[k][kk]) * Rw[k][3];
           }
-        vtkIdType ptIdxNew = L*ptStepNew[0] + j*ptStepNew[1] + i*ptStepNew[2];
+        vtkIdType ptIdxNew =
+          L * ptStepNew[0] + j * ptStepNew[1] + i * ptStepNew[2];
         pointsOut->SetTuple4(ptIdxNew, Rw[0][0], Rw[0][1], Rw[0][2], Rw[0][3]);
-        ptIdxNew = (kSpan + insertTimes - kk - sMult)*ptStepNew[0] + j*ptStepNew[1] + i*ptStepNew[2];
+        ptIdxNew =
+          (kSpan + insertTimes - kk - sMult)
+          * ptStepNew[0] + j * ptStepNew[1] + i * ptStepNew[2];
         pointsOut->SetTuple4(
           ptIdxNew,
           Rw[p - kk - sMult][0],
@@ -765,10 +855,10 @@ void vtkNURBSPatchAdaptor::InsertKnotMulti(
           Rw[p - kk - sMult][2],
           Rw[p - kk - sMult][3]);
         }
-      //std::cout<<"test3\n";
       for (int k = L + 1; k < kSpan - sMult; ++k)
         {
-        vtkIdType ptIdxNew = k*ptStepNew[0] + j*ptStepNew[1] + i*ptStepNew[2];
+        vtkIdType ptIdxNew =
+        k * ptStepNew[0] + j * ptStepNew[1] + i * ptStepNew[2];
         pointsOut->SetTuple4(
           ptIdxNew,
           Rw[k - L][0],
@@ -776,24 +866,31 @@ void vtkNURBSPatchAdaptor::InsertKnotMulti(
           Rw[k - L][2],
           Rw[k - L][3]);
         }
-      //std::cout<<"test4\n";
-      //std::cout<<"i: "<<i<<"\nj: "<<j<<"\n";
       }
     }
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::InsertKnotForEval(double* Paras, int& PtIdx)
 {
-  vtkStructuredGrid* nurbs = vtkStructuredGrid::SafeDownCast(this->ControlPointData);
+  vtkStructuredGrid* nurbs =
+    vtkStructuredGrid::SafeDownCast(this->ControlPointData);
 
-  int* knotsLenPtr = static_cast<int*>(nurbs->GetFieldData()->GetArray("KnotsLen")->GetVoidPointer(0));
-  double* knotsArrPtr = static_cast<double*>(nurbs->GetFieldData()->GetArray("Knots")->GetVoidPointer(0));
+  int* knotsLenPtr =
+    static_cast<int*>(
+      nurbs->GetFieldData()->GetArray("KnotsLen")->GetVoidPointer(0));
+  double* knotsArrPtr =
+    static_cast<double*>(
+      nurbs->GetFieldData()->GetArray("Knots")->GetVoidPointer(0));
   std::vector<int> knotsLen(knotsLenPtr, knotsLenPtr + 3);
-  std::vector<double> knotsArr(knotsArrPtr, knotsArrPtr + knotsLen[0] + knotsLen[1] + knotsLen[2]);
+  std::vector<double> knotsArr(
+    knotsArrPtr,
+    knotsArrPtr + knotsLen[0] + knotsLen[1] + knotsLen[2]);
 
   std::vector<int> ctrlPtsNum(3, 0);
   nurbs->GetDimensions(&ctrlPtsNum[0]);
 
-  vtkSmartPointer<vtkDoubleArray> pointsIn = vtkSmartPointer<vtkDoubleArray>::New();
+  vtkSmartPointer<vtkDoubleArray> pointsIn
+     = vtkSmartPointer<vtkDoubleArray>::New();
   pointsIn->DeepCopy(nurbs->GetPointData()->GetArray("ControlPolygon"));
 
   // 1. get dimension and degree for each dimension of the nurbs patch
@@ -802,7 +899,8 @@ void vtkNURBSPatchAdaptor::InsertKnotForEval(double* Paras, int& PtIdx)
   this->GetPatchDegree(degree);
 
   // 2. insert given paras to each dimension multiple times
-  PtIdx = 1;
+  PtIdx = 0;
+  int PtIdxAxis[3] = {0,0,0};
   int kSpan, sMult;
   int knotStart;
 
@@ -812,7 +910,8 @@ void vtkNURBSPatchAdaptor::InsertKnotForEval(double* Paras, int& PtIdx)
     this->FindSpanMult(
       Paras[i], knotsLen[i]-1, &knotsArr[knotStart],
       kSpan, sMult);
-    PtIdx *= (kSpan - sMult + 1);
+    // kSpan - sMult means the ith point along this axis (i start from 0)
+    PtIdxAxis[i] = (kSpan - sMult);
 
     this->KnotsArrCache.resize(
       knotsLen[0] + knotsLen[1] + knotsLen[2]
@@ -830,8 +929,15 @@ void vtkNURBSPatchAdaptor::InsertKnotForEval(double* Paras, int& PtIdx)
     knotsArr = this->KnotsArrCache;
     ctrlPtsNum = this->CtrlPtsNumCache;
     }
+
+  PtIdx =
+    PtIdxAxis[0]
+    + PtIdxAxis[1] * this->CtrlPtsNumCache[0]
+    + PtIdxAxis[2] * this->CtrlPtsNumCache[1] * this->CtrlPtsNumCache[0];
+
 }
 
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::EvaluateFirstOrderDeriv(
   double Dv[3],
   int degree, double U, double* Pts)
@@ -843,17 +949,19 @@ void vtkNURBSPatchAdaptor::EvaluateFirstOrderDeriv(
   Dv[1] = coef * (Pts[5] / Pts[7] - Pts[1] / Pts[3]);
   Dv[2] = coef * (Pts[6] / Pts[7] - Pts[2] / Pts[3]);
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::EvaluateSecondOrderDeriv(
   double Dv[3],
   int degree, double* U, double* Pts)
 {
-  // second order derivative needs U_p_1, U_p_2 and Pw_0, Pw_1, Pw_2, so Pts has 12 elements
+  // second order derivative needs U_p_1, U_p_2 and Pw_0, Pw_1, Pw_2,
+  // so Pts has 12 elements
 
   double coef[3];
   coef[0] =
     degree * (degree - 1) / U[0] / U[0];
   coef[1] =
-    degree * (degree - 1) / U[0]
+    - degree * (degree - 1) / U[0]
   * (U[0] + U[1]) / (U[0] * U[1]);
   coef[2] =
     degree * (degree - 1) / U[0] / U[1];
@@ -910,6 +1018,7 @@ void vtkNURBSPatchAdaptor::EvaluateSecondOrderDeriv(
   - w_2_0 * Dv_zero[2])
     / Pts[3];
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::EvaluateSecondPartialDeriv(
   double Dv[3],
   int* degree, double* U, double* Pts)
@@ -941,6 +1050,7 @@ void vtkNURBSPatchAdaptor::EvaluateSecondPartialDeriv(
     + coef[2] * Pts[2] / Pts[3];
 }
 
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::EvaluateCurvDeriv(double* Pt, double* Paras, int d)
 {
   std::vector<double> Dv(9, 0);
@@ -950,11 +1060,20 @@ void vtkNURBSPatchAdaptor::EvaluateCurvDeriv(double* Pt, double* Paras, int d)
   Pt[1] = Dv[3 * d + 1];
   Pt[2] = Dv[3 * d + 2];
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::EvaluateCurveSecondDeriv(double* Dv, double* Paras)
 {
   // currently only implement first order and second order derivatives
   // Dv should have space for 9 elements
-  int PtIdx = 1;
+  int PtIdx = 0;
+
+  // Prevent reach the end point for end point derivative not implemented yet
+  std::vector<double> paraRange(6,0);
+  this->GetPatchParameterRange(&paraRange[0]);
+  if (abs(Paras[0] - paraRange[1]) <= 1e-5)
+    {
+    Paras[0] -= 1e-3;
+    }
 
   this->InsertKnotForEval(Paras, PtIdx);
 
@@ -970,16 +1089,19 @@ void vtkNURBSPatchAdaptor::EvaluateCurveSecondDeriv(double* Dv, double* Paras)
     &this->KnotsArrCache[knotStart],
     kSpan, sMult);
 
+  // use end point derivative formula presume knot start at 0
+  // thus we need to substitute the insert knot value
   std::vector<double> U(2, 0.0);
-  U[0] = this->KnotsArrCache[knotStart + kSpan + 1];
-  U[1] = this->KnotsArrCache[knotStart + kSpan + 2];
+  U[0] = this->KnotsArrCache[knotStart + kSpan + 1] - Paras[0];
+  U[1] = this->KnotsArrCache[knotStart + kSpan + 2] - Paras[0];
 
   std::vector<double> Pts(12, 0.0);
-  this->PointsCache->GetTuple(PtIdx - 1, &Pts[0]);
-  this->PointsCache->GetTuple(PtIdx, &Pts[4]);
-  this->PointsCache->GetTuple(PtIdx + 1, &Pts[8]);
+  this->PointsCache->GetTuple(PtIdx, &Pts[0]);
+  this->PointsCache->GetTuple(PtIdx + 1, &Pts[4]);
+  this->PointsCache->GetTuple(PtIdx + 2, &Pts[8]);
 
-  // store zero to d order derivatives to Dv Dv should have space for 3 * (d + 1)
+  // store zero to d order derivatives to Dv Dv should have space
+  // for 3 * (d + 1)
   Dv[0] = Pts[0] / Pts[3];
   Dv[1] = Pts[1] / Pts[3];
   Dv[2] = Pts[2] / Pts[3];
@@ -991,18 +1113,62 @@ void vtkNURBSPatchAdaptor::EvaluateSurfaceDeriv(double* Pt, double* Paras, int d
 {
   std::vector<double> Dv(18, 0);
   this->EvaluateSurfaceSecondDeriv(&Dv[0], Paras);
-  // Todo: return indicated derivative for order d
-  Pt = Pt;
-  d = d;
+  if (d == 0)
+    {
+    Pt[0] = Dv[0];
+    Pt[1] = Dv[1];
+    Pt[2] = Dv[2];
+    }
+  else if (d == 1)
+    {
+    Pt[0] = Dv[3];
+    Pt[1] = Dv[4];
+    Pt[2] = Dv[5];
+    Pt[3] = Dv[9];
+    Pt[4] = Dv[10];
+    Pt[5] = Dv[11];
+    }
+  else if (d == 2)
+    {
+    Pt[0] = Dv[6];
+    Pt[1] = Dv[7];
+    Pt[2] = Dv[8];
+    Pt[3] = Dv[15];
+    Pt[4] = Dv[16];
+    Pt[5] = Dv[17];
+    Pt[6] = Dv[12];
+    Pt[7] = Dv[13];
+    Pt[8] = Dv[14];
+    }
+    else
+    {
+    vtkErrorMacro(
+      "Derivative order higher than 3 are not supported.");
+    }
 }
 void vtkNURBSPatchAdaptor::EvaluateSurfaceSecondDeriv(double* Dv, double* Paras)
 {
-  // currently only implement first order and second order derivatives the Dv will contains 3 * 6 doubles
+  // currently only implement first order and second order derivatives the Dv
+  // will contains 3 * 6 doubles
   // - P_1 Dv_zero namely the point position
-  // - P_2 - P_3 First and second order derivatives for parametric space u Dv_1_u Dv_2_u
-  // - P_4 - P_5 First and second order derivatives for parametric space v Dv_1_v Dv_2_v
+  // - P_2 - P_3 First and second order derivatives for parametric space
+  //   u Dv_1_u Dv_2_u
+  // - P_4 - P_5 First and second order derivatives for parametric space
+  //   v Dv_1_v Dv_2_v
   // - P_6 Partial derivatives for parametric space u and v Dv_1_u_v
-  int PtIdx = 1;
+  int PtIdx = 0;
+
+  // Prevent reach the end point for end point derivative not implemented yet
+  std::vector<double> paraRange(6,0);
+  this->GetPatchParameterRange(&paraRange[0]);
+  if (abs(Paras[0] - paraRange[1]) <= 1e-5)
+    {
+    Paras[0] -= 1e-3;
+    }
+  if (abs(Paras[1] - paraRange[3]) <= 1e-5)
+    {
+    Paras[1] -= 1e-3;
+    }
 
   this->InsertKnotForEval(Paras, PtIdx);
 
@@ -1018,14 +1184,14 @@ void vtkNURBSPatchAdaptor::EvaluateSurfaceSecondDeriv(double* Dv, double* Paras)
   // we need to retrieve control points along different axis
 
   // point pos
-  this->PointsCache->GetTuple(PtIdx - 1, &Pts[0]);
+  this->PointsCache->GetTuple(PtIdx, &Pts[0]);
   Dv[0] = Pts[0] / Pts[3];
   Dv[1] = Pts[1] / Pts[3];
   Dv[2] = Pts[2] / Pts[3];
 
   // first order and second order derivative
   for (int i = 0; i < 2; ++i)
-  {
+    {
     this->FindKnotStart(&this->KnotsLenCache[0], i, knotStart[i]);
     this->FindSpanMult(
       Paras[i],
@@ -1033,43 +1199,64 @@ void vtkNURBSPatchAdaptor::EvaluateSurfaceSecondDeriv(double* Dv, double* Paras)
       &this->KnotsArrCache[knotStart[i]],
       kSpan[i], sMult[i]);
 
-    U[0] = this->KnotsArrCache[knotStart[i] + kSpan[i] + 1];
-    U[1] = this->KnotsArrCache[knotStart[i] + kSpan[i] + 2];
+    U[0] = this->KnotsArrCache[knotStart[i] + kSpan[i] + 1] - Paras[i];
+    U[1] = this->KnotsArrCache[knotStart[i] + kSpan[i] + 2] - Paras[i];
 
-    this->PointsCache->GetTuple(PtIdx - 1 + axisStep[i], &Pts[4]);
-    this->PointsCache->GetTuple(PtIdx - 1 + 2 * axisStep[i], &Pts[8]);
+    this->PointsCache->GetTuple(PtIdx + axisStep[i], &Pts[4]);
+    this->PointsCache->GetTuple(PtIdx + 2 * axisStep[i], &Pts[8]);
 
     this->EvaluateFirstOrderDeriv(&Dv[3 + i * 6], degree[i], U[0], &Pts[0]);
     this->EvaluateSecondOrderDeriv(&Dv[6 + i * 6], degree[i], &U[0], &Pts[0]);
-  }
+    }
 
   // partial derivative
-  U[0] = this->KnotsArrCache[knotStart[0] + kSpan[0] + 1];
-  U[1] = this->KnotsArrCache[knotStart[1] + kSpan[1] + 1];
+  U[0] = this->KnotsArrCache[knotStart[0] + kSpan[0] + 1] - Paras[0];
+  U[1] = this->KnotsArrCache[knotStart[1] + kSpan[1] + 1] - Paras[1];
 
-  this->PointsCache->GetTuple(PtIdx - 1 + axisStep[0], &Pts[4]);
-  this->PointsCache->GetTuple(PtIdx - 1 + axisStep[1], &Pts[8]);
-  this->PointsCache->GetTuple(PtIdx - 1 + axisStep[0] + axisStep[1], &Pts[12]);
+  this->PointsCache->GetTuple(PtIdx + axisStep[0], &Pts[4]);
+  this->PointsCache->GetTuple(PtIdx + axisStep[1], &Pts[8]);
+  this->PointsCache->GetTuple(PtIdx + axisStep[0] + axisStep[1], &Pts[12]);
 
   this->EvaluateSecondPartialDeriv(&Dv[15], &degree[0], &U[0], &Pts[0]);
 }
-void vtkNURBSPatchAdaptor::EvaluateVolumeDeriv(double* Pt, double* Paras, int d)
+// ----------------------------------------------------------------------------
+void vtkNURBSPatchAdaptor::EvaluateVolumeDeriv(
+  double* vtkNotUsed(Pt), double* Paras, int vtkNotUsed(d))
 {
   std::vector<double> Dv(30, 0);
   this->EvaluateSurfaceSecondDeriv(&Dv[0], Paras);
   // Todo: return indicated derivative for order d
-  Pt = Pt;
-  d = d;
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::EvaluateVolumeSecondDeriv(double* Dv, double* Paras)
 {
-  // currently only implement first order and second order derivatives the Dv will contains 3 * 10 doubles
+  // currently only implement first order and second order derivatives the Dv
+  // will contains 3 * 10 doubles
   // - P_1 Dv_zero namely the point position
-  // - P_2 - P_3 First and second order derivatives for parametric space u Dv_1_u Dv_2_u
-  // - P_4 - P_5 First and second order derivatives for parametric space v Dv_1_v Dv_2_v
-  // - P_6 - P_7 First and second order derivatives for parametric space w Dv_1_w Dv_2_w
+  // - P_2 - P_3 First and second order derivatives for parametric space
+  //   u Dv_1_u Dv_2_u
+  // - P_4 - P_5 First and second order derivatives for parametric space
+  //   v Dv_1_v Dv_2_v
+  // - P_6 - P_7 First and second order derivatives for parametric space
+  //   w Dv_1_w Dv_2_w
   // - P_8 - P_10 Partial derivatives Dv_1_u_v, Dv_1_u_w, Dv_1_v_w
-  int PtIdx = 1;
+  int PtIdx = 0;
+
+  // Prevent reach the end point for end point derivative not implemented yet
+  std::vector<double> paraRange(6,0);
+  this->GetPatchParameterRange(&paraRange[0]);
+  if (abs(Paras[0] - paraRange[1]) <= 1e-5)
+    {
+    Paras[0] -= 1e-3;
+    }
+  if (abs(Paras[1] - paraRange[3]) <= 1e-5)
+    {
+    Paras[1] -= 1e-3;
+    }
+  if (abs(Paras[2] - paraRange[5]) <= 1e-5)
+    {
+    Paras[2] -= 1e-3;
+    }
 
   this->InsertKnotForEval(Paras, PtIdx);
 
@@ -1088,14 +1275,14 @@ void vtkNURBSPatchAdaptor::EvaluateVolumeSecondDeriv(double* Dv, double* Paras)
   // we need to retrieve control points along different axis
 
   // point pos
-  this->PointsCache->GetTuple(PtIdx - 1, &Pts[0]);
+  this->PointsCache->GetTuple(PtIdx, &Pts[0]);
   Dv[0] = Pts[0] / Pts[3];
   Dv[1] = Pts[1] / Pts[3];
   Dv[2] = Pts[2] / Pts[3];
 
   // first order and second order derivative
   for (int i = 0; i < 3; ++i)
-  {
+    {
     this->FindKnotStart(&this->KnotsLenCache[0], i, knotStart[i]);
     this->FindSpanMult(
       Paras[i],
@@ -1103,35 +1290,36 @@ void vtkNURBSPatchAdaptor::EvaluateVolumeSecondDeriv(double* Dv, double* Paras)
       &this->KnotsArrCache[knotStart[i]],
       kSpan[i], sMult[i]);
 
-    U[0] = this->KnotsArrCache[knotStart[i] + kSpan[i] + 1];
-    U[1] = this->KnotsArrCache[knotStart[i] + kSpan[i] + 2];
+    U[0] = this->KnotsArrCache[knotStart[i] + kSpan[i] + 1] + Paras[i];
+    U[1] = this->KnotsArrCache[knotStart[i] + kSpan[i] + 2] + Paras[i];
 
-    this->PointsCache->GetTuple(PtIdx - 1 + axisStep[i], &Pts[4]);
-    this->PointsCache->GetTuple(PtIdx - 1 + 2 * axisStep[i], &Pts[8]);
+    this->PointsCache->GetTuple(PtIdx + axisStep[i], &Pts[4]);
+    this->PointsCache->GetTuple(PtIdx + 2 * axisStep[i], &Pts[8]);
 
     this->EvaluateFirstOrderDeriv(&Dv[3 + i * 6], degree[i], U[0], &Pts[0]);
     this->EvaluateSecondOrderDeriv(&Dv[6 + i * 6], degree[i], &U[0], &Pts[0]);
-  }
+    }
 
   // partial derivative
   int dim_comb[6] = {0,1,0,2,1,2};
   for (int i = 0; i < 3; ++i)
-  {
+    {
     int id_0 = dim_comb[2 * i + 0];
     int id_1 = dim_comb[2 * i + 1];
 
-    U[0] = this->KnotsArrCache[knotStart[id_0] + kSpan[id_0] + 1];
-    U[1] = this->KnotsArrCache[knotStart[id_1] + kSpan[id_1] + 1];
+    U[0] = this->KnotsArrCache[knotStart[id_0] + kSpan[id_0] + 1] + Paras[id_0];
+    U[1] = this->KnotsArrCache[knotStart[id_1] + kSpan[id_1] + 1] + Paras[id_1];
 
-    this->PointsCache->GetTuple(PtIdx - 1 + axisStep[id_0], &Pts[4]);
-    this->PointsCache->GetTuple(PtIdx - 1 + axisStep[id_1], &Pts[8]);
-    this->PointsCache->GetTuple(PtIdx - 1 + axisStep[id_0] + axisStep[id_1], &Pts[12]);
+    this->PointsCache->GetTuple(PtIdx + axisStep[id_0], &Pts[4]);
+    this->PointsCache->GetTuple(PtIdx + axisStep[id_1], &Pts[8]);
+    this->PointsCache->GetTuple(PtIdx + axisStep[id_0] + axisStep[id_1], &Pts[12]);
 
     int partial_degree[2] = {degree[id_0], degree[id_1]};
     this->EvaluateSecondPartialDeriv(&Dv[21 + 3 * i], &partial_degree[0], &U[0], &Pts[0]);
-  }
+    }
 }
 
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::PointInversionCurve(double Pt[3], double* Paras)
 {
   // 1. find a start u (in each span)
@@ -1143,8 +1331,8 @@ void vtkNURBSPatchAdaptor::PointInversionCurve(double Pt[3], double* Paras)
   // compute distance for all candidate parameters to find the start u_0
   std::vector<double> parasRange(2, 0);
   this->GetPatchParameterRange(&parasRange[0]);
-  parasRange[0] += 0.01;
-  parasRange[1] -= 0.01;
+  parasRange[0] += 1e-3;
+  parasRange[1] -= 1e-3;
   int n_para = 25;
   double step = (parasRange[1] - parasRange[0]) / n_para;
   double init_para = parasRange[0];
@@ -1152,24 +1340,24 @@ void vtkNURBSPatchAdaptor::PointInversionCurve(double Pt[3], double* Paras)
   double min_dist = std::numeric_limits<double>::max();
 
   for (int i = 0; i <= n_para; ++i)
-  {
+    {
     double start_para = parasRange[0] + i * step;
     this->EvaluatePoint(&Dv[0], &start_para);
 
     double cur_dist = vtkMath::Distance2BetweenPoints(Pt, &Dv[0]);
     if (cur_dist < min_dist)
-    {
+      {
       min_dist = cur_dist;
       init_para = start_para;
+      }
     }
-  }
 
   // start from the init_para
   std::vector<double> diff_C_P(3,0);
   double ep_1 = 1e-4;
   double ep_2 = 1e-3;
   for (;;)
-  {
+    {
     this->EvaluateCurveSecondDeriv(&Dv[0], &init_para);
     diff_C_P[0] = Dv[0] - Pt[0];
     diff_C_P[1] = Dv[1] - Pt[1];
@@ -1181,82 +1369,82 @@ void vtkNURBSPatchAdaptor::PointInversionCurve(double Pt[3], double* Paras)
     double pt_coincidence =
       sqrt(vtkMath::Dot(&diff_C_P[0], &diff_C_P[0]));
     if (pt_coincidence <= ep_1 && zero_cos <= ep_2)
-    {
+      {
       break;
-    }
+      }
 
-    double para_step =
-      vtkMath::Dot(&Dv[3], &diff_C_P[0])
+    double para_step = vtkMath::Dot(&Dv[3], &diff_C_P[0])
       / (vtkMath::Dot(&Dv[6], &diff_C_P[0]) + vtkMath::Dot(&Dv[3], &Dv[3]));
 
     // assume it a non-closed curve
     if (init_para - para_step < parasRange[0])
-    {
+      {
       para_step = init_para - parasRange[0];
-    }
+      }
     if (init_para - para_step > parasRange[1])
-    {
+      {
       para_step = init_para - parasRange[1];
-    }
+      }
 
     init_para -= para_step;
 
     double para_change = abs(para_step) * sqrt(vtkMath::Dot(&Dv[3], &Dv[3]));
     if (pt_coincidence <= ep_1 || zero_cos <= ep_2 || para_change <= ep_1)
-    {
+      {
       break;
+      }
     }
-  }
 
   Paras[0] = init_para;
   Paras[1] = 0;
   Paras[2] = 0;
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::PointInversionSurface(double Pt[3], double* Paras)
 {
   std::vector<double> parasRange(4, 0);
   this->GetPatchParameterRange(&parasRange[0]);
-  parasRange[0] += 0.01;
-  parasRange[1] -= 0.01;
-  parasRange[2] += 0.01;
-  parasRange[3] -= 0.01;
+  parasRange[0] += 1e-3;
+  parasRange[1] -= 1e-3;
+  parasRange[2] += 1e-3;
+  parasRange[3] -= 1e-3;
 
   // find initial u and v
   int n_para = 25;
   std::vector<double> step(2, 0);
   std::vector<double> init_para(2, 0);
   for (int i = 0; i < 2; ++i)
-  {
+    {
     step[i] = (parasRange[2 * i + 1] - parasRange[2 * i + 0]) / n_para;
     init_para[i] = parasRange[2 * i];
-  }
+    }
   std::vector<double> Dv(18, 0);
   std::vector<double> start_para(2, 0);
   double min_dist = std::numeric_limits<double>::max();
 
   for (int j = 0; j <= n_para; ++j)
-  {
-    for (int i = 0; i <= n_para; ++i)
     {
+    for (int i = 0; i <= n_para; ++i)
+      {
       start_para[0] = parasRange[0] + i * step[0];
       start_para[1] = parasRange[2] + j * step[1];
       this->EvaluatePoint(&Dv[0], &start_para[0]);
 
       double cur_dist = vtkMath::Distance2BetweenPoints(Pt, &Dv[0]);
       if (cur_dist < min_dist)
-      {
+        {
         min_dist = cur_dist;
         init_para = start_para;
+        }
       }
     }
-  }
 
   // start from the init_para
   std::vector<double> diff_C_P(3,0);
   double ep_1 = 1e-4;
   double ep_2 = 1e-3;
-  for (;;)
-  {
+  for (int niter = 0;;++niter)
+    {
     this->EvaluateSurfaceSecondDeriv(&Dv[0], &init_para[0]);
     diff_C_P[0] = Dv[0] - Pt[0];
     diff_C_P[1] = Dv[1] - Pt[1];
@@ -1269,16 +1457,16 @@ void vtkNURBSPatchAdaptor::PointInversionSurface(double Pt[3], double* Paras)
     // 2. zero cosine
     std::vector<double> zero_cos(2, 0);
     for (int i = 0; i < 2; ++i)
-    {
+      {
       zero_cos[i] =
         abs(vtkMath::Dot(&Dv[3 + i * 6], &diff_C_P[0]))
-        / (sqrt(vtkMath::Dot(&Dv[3 + i * 6], &Dv[3])
+        / (sqrt(vtkMath::Dot(&Dv[3 + i * 6], &Dv[3 + i * 6])
         * sqrt(vtkMath::Dot(&diff_C_P[0], &diff_C_P[0]))));
-    }
+      }
     if (pt_coincidence <= ep_1 && zero_cos[0] <= ep_2 && zero_cos[1] <= ep_2)
-    {
+      {
       break;
-    }
+      }
 
     // compute new init_para
     double J[2][2];
@@ -1293,27 +1481,31 @@ void vtkNURBSPatchAdaptor::PointInversionSurface(double Pt[3], double* Paras)
     J_ptr[0] = J[0];
     J_ptr[1] = J[1];
     if (!vtkMath::SolveLinearSystem(J_ptr, &delta[0], 2))
-    {
-      std::cout<<"Error in Solving linear system. Return the latest state.\n";
+      {
+      vtkErrorMacro(
+        "Error in Solving linear system. Return the latest state.");
       Paras[0] = init_para[0];
       Paras[1] = init_para[1];
       Paras[2] = 0;
 
       return;
-    }
+      }
 
     // assume non-closed
+    delta[0] = delta[0];
+    delta[1] = delta[1];
     for (int i = 0; i < 2; ++i)
-    {
+      {
       if (init_para[i] + delta[i] < parasRange[i * 2 + 0])
-      {
+        {
         delta[i] = parasRange[i * 2 + 0] - init_para[i];
-      }
+        }
       if (init_para[i] + delta[i] > parasRange[i * 2 + 1])
-      {
+        {
         delta[i] = parasRange[i * 2 + 1] - init_para[i];
+        }
       }
-    }
+
     init_para[0] += delta[0];
     init_para[1] += delta[1];
 
@@ -1323,45 +1515,46 @@ void vtkNURBSPatchAdaptor::PointInversionSurface(double Pt[3], double* Paras)
     if (pt_coincidence <= ep_1
       || (zero_cos[0] <= ep_2 && zero_cos[1] <= ep_2)
       || para_change <= ep_1)
-    {
+      {
       break;
+      }
     }
-  }
 
   Paras[0] = init_para[0];
   Paras[1] = init_para[1];
   Paras[2] = 0;
 }
+// ----------------------------------------------------------------------------
 void vtkNURBSPatchAdaptor::PointInversionVolume(double Pt[3], double* Paras)
 {
   std::vector<double> parasRange(6, 0);
   this->GetPatchParameterRange(&parasRange[0]);
-  parasRange[0] += 0.01;
-  parasRange[1] -= 0.01;
-  parasRange[2] += 0.01;
-  parasRange[3] -= 0.01;
-  parasRange[4] += 0.01;
-  parasRange[5] -= 0.01;
+  parasRange[0] += 1e-3;
+  parasRange[1] -= 1e-3;
+  parasRange[2] += 1e-3;
+  parasRange[3] -= 1e-3;
+  parasRange[4] += 1e-3;
+  parasRange[5] -= 1e-3;
 
   // find initial u and v
   int n_para = 25;
   std::vector<double> step(3, 0);
   std::vector<double> start_para(3, 0);
   for (int i = 0; i < 3; ++i)
-  {
+    {
     step[i] = (parasRange[2 * i + 1] - parasRange[2 * i + 0]) / n_para;
     start_para[i] = parasRange[2 * i];
-  }
+    }
   std::vector<double> init_para = start_para;
   std::vector<double> Dv(30, 0);
   double min_dist = std::numeric_limits<double>::max();
 
   for (int k = 0; k <= n_para; ++k)
-  {
-    for (int j = 0; j <= n_para; ++j)
     {
-      for (int i = 0; i <= n_para; ++i)
+    for (int j = 0; j <= n_para; ++j)
       {
+      for (int i = 0; i <= n_para; ++i)
+        {
         start_para[0] = parasRange[0] + i * step[0];
         start_para[1] = parasRange[2] + j * step[1];
         start_para[2] = parasRange[4] + k * step[2];
@@ -1369,20 +1562,20 @@ void vtkNURBSPatchAdaptor::PointInversionVolume(double Pt[3], double* Paras)
 
         double cur_dist = vtkMath::Distance2BetweenPoints(Pt, &Dv[0]);
         if (cur_dist < min_dist)
-        {
+          {
           min_dist = cur_dist;
           init_para = start_para;
+          }
         }
       }
     }
-  }
 
   // start from the init_para
   std::vector<double> diff_C_P(3,0);
   double ep_1 = 1e-4;
   double ep_2 = 1e-3;
   for (;;)
-  {
+    {
     this->EvaluateVolumeSecondDeriv(&Dv[0], &init_para[0]);
     diff_C_P[0] = Dv[0] - Pt[0];
     diff_C_P[1] = Dv[1] - Pt[1];
@@ -1395,19 +1588,19 @@ void vtkNURBSPatchAdaptor::PointInversionVolume(double Pt[3], double* Paras)
     // 2. zero cosine
     std::vector<double> zero_cos(3, 0);
     for (int i = 0; i < 3; ++i)
-    {
+      {
       zero_cos[i] =
         abs(vtkMath::Dot(&Dv[3 + i * 6], &diff_C_P[0]))
         / (sqrt(vtkMath::Dot(&Dv[3 + i * 6], &Dv[3])
         * sqrt(vtkMath::Dot(&diff_C_P[0], &diff_C_P[0]))));
-    }
+      }
     if (pt_coincidence <= ep_1
       && zero_cos[0] <= ep_2
       && zero_cos[1] <= ep_2
       && zero_cos[2] <= ep_2)
-    {
+      {
       break;
-    }
+      }
 
     // compute new init_para
     double J[3][3];
@@ -1429,27 +1622,28 @@ void vtkNURBSPatchAdaptor::PointInversionVolume(double Pt[3], double* Paras)
     J_ptr[1] = J[1];
     J_ptr[2] = J[2];
     if (!vtkMath::SolveLinearSystem(J_ptr, &delta[0], 3))
-    {
-      std::cout<<"Error in Solving linear system. Return the latest state.\n";
+      {
+      vtkErrorMacro(
+        "Error in Solving linear system. Return the latest state.");
       Paras[0] = init_para[0];
       Paras[1] = init_para[1];
       Paras[2] = init_para[2];
 
       return;
-    }
+      }
 
     // assume non-closed
     for (int i = 0; i < 3; ++i)
-    {
+      {
       if (init_para[i] + delta[i] < parasRange[i * 2 + 0])
-      {
+        {
         delta[i] = parasRange[i * 2 + 0] - init_para[i];
-      }
+        }
       if (init_para[i] + delta[i] > parasRange[i * 2 + 1])
-      {
+        {
         delta[i] = parasRange[i * 2 + 1] - init_para[i];
+        }
       }
-    }
     init_para[0] += delta[0];
     init_para[1] += delta[1];
     init_para[2] += delta[2];
@@ -1461,10 +1655,10 @@ void vtkNURBSPatchAdaptor::PointInversionVolume(double Pt[3], double* Paras)
     if (pt_coincidence <= ep_1
       || (zero_cos[0] <= ep_2 && zero_cos[1] <= ep_2 && zero_cos[2] <= ep_2)
       || para_change <= ep_1)
-    {
+      {
       break;
+      }
     }
-  }
 
   Paras[0] = init_para[0];
   Paras[1] = init_para[1];
