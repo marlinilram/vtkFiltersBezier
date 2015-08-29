@@ -53,7 +53,7 @@ class PatchInterpolation(Testing.vtkTest):
         #wri.SetInputDataObject(pd)
         #wri.SetFileName('bezier-{shape}.vtk'.format(shape=name))
         #wri.Write()
-		
+
 		# Create Instance for Rendering
         #
         #pdMapper = vtk.vtkPolyDataMapper()
@@ -76,10 +76,10 @@ class PatchInterpolation(Testing.vtkTest):
         #imgWri.SetFileName('bezier-{shape}.png'.format(shape=name))
         #imgWri.SetInputConnection(winToImg.GetOutputPort())
         #imgWri.Write()
-        
+
         #img_file = 'bezier-{shape}.png'.format(shape=name)
         #vtk.test.Testing.compareImage(renWin, vtk.test.Testing.getAbsImagePath(img_file), threshold=25)
-        
+
         return pd
 
     def createRationalLine(self):
@@ -93,7 +93,7 @@ class PatchInterpolation(Testing.vtkTest):
             [[1,0,0,1], [1,1,0,1], [0,2,0,2]],
             lambda x: 1. - x[0]**2 - x[1]**2,
             [0, 1], 21, 'circle')
-            
+
     def createRationalHyperbola(self):
         import vtk
         erp = vtk.vtkPatchInterpolation()
@@ -105,10 +105,10 @@ class PatchInterpolation(Testing.vtkTest):
         pd.SetLines(ln)
         prange = [0, 1]
         ns = 21;
-        
+
         # generate control points of ellipse for one quadrant
         erp.GenerateHyperbolaCtrlPt(cpt, 1., 3.)
-        
+
         npts = cpt.GetNumberOfTuples()
         degree = [npts - 1,0,0]
         self.assertGreater(degree[0], 0,
@@ -122,14 +122,14 @@ class PatchInterpolation(Testing.vtkTest):
             erp.InterpolateOnPatch(pts.GetData(), 1, cpt, degree, params)
 
         [ln.InsertNextCell(2, [i, i+1]) for i in range(ns - 1)]
-        
+
         #wri = vtk.vtkPolyDataWriter()
         #wri.SetInputDataObject(pd)
         #wri.SetFileName('bezier-{shape}.vtk'.format(shape='hyperbola'))
         #wri.Write()
-        
+
         return pd
-            
+
     def createRationalEllipse(self):
         import vtk
         # declare vals
@@ -153,12 +153,12 @@ class PatchInterpolation(Testing.vtkTest):
         minorAxis = vtk.vtkVector3d()
         minorAxis.SetX(0.0)
         minorAxis.SetY(1.414)
-        minorAxis.SetZ(1.414)        
-        
+        minorAxis.SetZ(1.414)
+
         for quadrant in range(1, 5):
             # generate control points of ellipse for one quadrant
             erp.GenerateEllipseCtrlPt(cpt, center, majorAxis, minorAxis, quadrant)
-            
+
             npts = cpt.GetNumberOfTuples()
             degree = [npts - 1,0,0]
             self.assertGreater(degree[0], 0,
@@ -172,20 +172,20 @@ class PatchInterpolation(Testing.vtkTest):
                 erp.InterpolateOnPatch(pts.GetData(), 1, cpt, degree, params)
 
             [ln.InsertNextCell(2, [(quadrant-1)*ns + i, (quadrant-1)*ns + i+1]) for i in range(ns - 1)]
-        
+
         wri = vtk.vtkPolyDataWriter()
         wri.SetInputDataObject(pd)
         wri.SetFileName('bezier-{shape}.vtk'.format(shape='ellipse3d'))
         wri.Write()
-        
+
         return pd
-            
+
     def testRationalPatches(self):
         pdLine = self.createRationalLine()
         pdCircle = self.createRationalCircle()
         pdEllipse = self.createRationalEllipse()
         pdHyperbola = self.createRationalHyperbola()
-        
+
         # Create Instance for Rendering
         #
         pdLineMapper = vtk.vtkPolyDataMapper()
@@ -193,19 +193,19 @@ class PatchInterpolation(Testing.vtkTest):
         pdLineActor = vtk.vtkActor()
         pdLineActor.SetMapper(pdLineMapper)
         pdLineActor.AddPosition(0.0, 0.0, 0.0)
-        
+
         pdCircleMapper = vtk.vtkPolyDataMapper()
         pdCircleMapper.SetInputData(pdCircle)
         pdCircleActor = vtk.vtkActor()
         pdCircleActor.SetMapper(pdCircleMapper)
         pdCircleActor.AddPosition(1.0, 0.0, 0.0)
-        
+
         pdEllipseMapper = vtk.vtkPolyDataMapper()
         pdEllipseMapper.SetInputData(pdEllipse)
         pdEllipseActor = vtk.vtkActor()
         pdEllipseActor.SetMapper(pdEllipseMapper)
         pdEllipseActor.AddPosition(4.0, 0.0, 0.0)
-        
+
         pdHyperbolaMapper = vtk.vtkPolyDataMapper()
         pdHyperbolaMapper.SetInputData(pdHyperbola)
         pdHyperbolaActor = vtk.vtkActor()
@@ -219,12 +219,17 @@ class PatchInterpolation(Testing.vtkTest):
         ren.AddActor(pdCircleActor)
         ren.AddActor(pdEllipseActor)
         ren.AddActor(pdHyperbolaActor)
-        
+        ren.GetActiveCamera().SetPosition(3.33, 0.0, 22.3055)
+        ren.GetActiveCamera().SetFocalPoint(3.33, 0.0, 0.0)
+        ren.GetActiveCamera().SetViewUp(0.0, 1.0, 0.0)
+        ren.GetActiveCamera().SetClippingRange(16.45556, 29.7231)
+        ren.GetActiveCamera().SetViewAngle(30.0)
+
         renWin = vtk.vtkRenderWindow()
-        renWin.AddRenderer(ren)        
+        renWin.AddRenderer(ren)
         renWin.SetSize(400, 150)
         renWin.Render()
-        
+
         #winToImg = vtk.vtkWindowToImageFilter()
         #winToImg.SetInput(renWin)
         #winToImg.Update()
@@ -232,7 +237,7 @@ class PatchInterpolation(Testing.vtkTest):
         #imgWri.SetFileName('PatchInterpolation.png')
         #imgWri.SetInputConnection(winToImg.GetOutputPort())
         #imgWri.Write()
-        
+
         img_file = "PatchInterpolation.png"
         vtk.test.Testing.compareImage(renWin, vtk.test.Testing.getAbsImagePath(img_file), threshold=25)
         vtk.test.Testing.interact()

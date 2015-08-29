@@ -25,9 +25,11 @@
 #include "vtkNURBSPatchAdaptor.h"
 #include "vtkPointData.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkProperty.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
+#include "vtkSmartPointer.h"
 #include "vtkStructuredGrid.h"
 #include "vtkSphereSource.h"
 #include "vtkUnstructuredGrid.h"
@@ -40,7 +42,7 @@
 
 int TestCurveProjection(int argc, char* argv[])
 {
-  vtkNew<vtkStructuredGrid> nurbs;
+  vtkSmartPointer<vtkStructuredGrid> nurbs = vtkStructuredGrid::New();
 
   vtkNew<vtkFieldData> fieldData;
 
@@ -77,7 +79,7 @@ int TestCurveProjection(int argc, char* argv[])
   nurbs->GetPointData()->AddArray(ctrl_pts.GetPointer());
   nurbs->SetDimensions(7,1,1);
 
-  vtkNew<vtkControlPointArray<double>> ctrlPts;
+  vtkNew<vtkControlPointArray<double> > ctrlPts;
   ctrlPts->InitializeArray(ctrl_pts.GetPointer());
 
   vtkNew<vtkPoints> points;
@@ -88,7 +90,7 @@ int TestCurveProjection(int argc, char* argv[])
   //std::cout<<"number of components: "<<ctrlPts->GetNumberOfComponents()<<"\n";
 
   vtkNew<vtkNURBSPatchAdaptor> nurbsAdaptor;
-  nurbsAdaptor->SetControlPointData(nurbs.GetPointer());
+  nurbsAdaptor->SetControlPointData(nurbs);
 
   vtkNew<vtkUnstructuredGrid> bezierShape;
   vtkNew<vtkPoints> bezierPoints;
@@ -98,7 +100,7 @@ int TestCurveProjection(int argc, char* argv[])
   nurbsAdaptor->GetPatchShape(bezierShape.GetPointer());
 
   // test projection
-  std::vector<vtkSmartPointer<vtkActor>> actorsProjLine;
+  std::vector<vtkSmartPointer<vtkActor> > actorsProjLine;
   double target[27] = {-2.1,-0.25,0,-1.5,0.5,0,-2,1.75,0,-0.25,2.0,0,0,0.25,0,1.6, 2.0,0,1.0,0,0,1.5,-1.25,0,2,0.25,0};
   for (int i = 0; i < 9; ++i)
   {
@@ -114,6 +116,7 @@ int TestCurveProjection(int argc, char* argv[])
     mapperProjLine->SetInputConnection(proj_line->GetOutputPort());
     vtkNew<vtkActor> actorProjLine;
     actorProjLine->SetMapper(mapperProjLine.GetPointer());
+    actorProjLine->GetProperty()->SetLineWidth(1);
     actorsProjLine.push_back(actorProjLine.GetPointer());
   }
 
@@ -132,7 +135,7 @@ int TestCurveProjection(int argc, char* argv[])
   renderWindowInteractor->SetRenderWindow(renderWindow.GetPointer());
 
   renderer->AddActor(actor.GetPointer());
-  for (int i = 0; i < actorsProjLine.size(); ++i)
+  for (size_t i = 0; i < actorsProjLine.size(); ++i)
   {
   renderer->AddActor(actorsProjLine[i]);
   }

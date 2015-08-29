@@ -26,6 +26,7 @@
 #include "vtkNURBSPatchAdaptor.h"
 #include "vtkPointData.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkProperty.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -38,7 +39,7 @@
 
 int TestSurfaceProjection(int argc, char* argv[])
 {
-  vtkNew<vtkStructuredGrid> nurbs;
+  vtkSmartPointer<vtkStructuredGrid> nurbs = vtkStructuredGrid::New();
   // Important: a nurbs data is stored in a vtkStructuredGrid
   // knot vector are stored in a 1-D array, so there should be
   // an additional array to store the length of knot vector for
@@ -112,7 +113,7 @@ int TestSurfaceProjection(int argc, char* argv[])
   nurbs->GetPointData()->AddArray(ctrl_pts.GetPointer());
   nurbs->SetDimensions(5,5,1);
 
-  vtkNew<vtkControlPointArray<double>> ctrlPts;
+  vtkNew<vtkControlPointArray<double> > ctrlPts;
   ctrlPts->InitializeArray(ctrl_pts.GetPointer());
 
   vtkNew<vtkPoints> points;
@@ -120,7 +121,7 @@ int TestSurfaceProjection(int argc, char* argv[])
   nurbs->SetPoints(points.GetPointer());
 
   vtkNew<vtkNURBSPatchAdaptor> nurbsAdaptor;
-  nurbsAdaptor->SetControlPointData(nurbs.GetPointer());
+  nurbsAdaptor->SetControlPointData(nurbs);
 
   vtkNew<vtkUnstructuredGrid> bezierShape;
   vtkNew<vtkPoints> bezierPoints;
@@ -130,14 +131,12 @@ int TestSurfaceProjection(int argc, char* argv[])
   nurbsAdaptor->GetPatchShape(bezierShape.GetPointer());
 
   // test projection
-  std::vector<vtkSmartPointer<vtkActor>> actorsProjLine;
+  std::vector<vtkSmartPointer<vtkActor> > actorsProjLine;
   double target[27] = {0,0,80,-15,30,30,0,35,55,-35,20,30,-10,-25,20,16, 20,30,40,-20,20,5,-25,20,20,25,10};
   for (int i = 0; i < 9; ++i)
     {
     double projParas[3] = {0,0,0};
     double projPt[3] = {0,0,0};
-    double deriPt[6] = {0,0,0,0,0,0};
-    double normPt[3] = {0,0,0};
     nurbsAdaptor->PointInversion(&target[3*i], projParas);
     nurbsAdaptor->EvaluatePoint(projPt, projParas);
     vtkNew<vtkLineSource> proj_line;
@@ -148,6 +147,7 @@ int TestSurfaceProjection(int argc, char* argv[])
     mapperProjLine->SetInputConnection(proj_line->GetOutputPort());
     vtkNew<vtkActor> actorProjLine;
     actorProjLine->SetMapper(mapperProjLine.GetPointer());
+    actorProjLine->GetProperty()->SetLineWidth(1);
     actorsProjLine.push_back(actorProjLine.GetPointer());
     vtkNew<vtkSphereSource> proj_sphere;
     proj_sphere->SetCenter(&target[3*i]);
@@ -175,7 +175,7 @@ int TestSurfaceProjection(int argc, char* argv[])
   renderWindowInteractor->SetRenderWindow(renderWindow.GetPointer());
 
   renderer->AddActor(actor.GetPointer());
-  for (int i = 0; i < actorsProjLine.size(); ++i)
+  for (size_t i = 0; i < actorsProjLine.size(); ++i)
     {
     renderer->AddActor(actorsProjLine[i]);
     }

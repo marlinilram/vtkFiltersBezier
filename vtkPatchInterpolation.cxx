@@ -439,7 +439,7 @@ void vtkPatchInterpolation::EvalCoord(
     {
     coef = 1.0;
     double coef_per_dim = 0.0;
-    for (size_t i = 0; i < dim; ++i)
+    for (int i = 0; i < dim; ++i)
       {
       this->EvalBernstein(degree[i], idxs[i], r[i], coef_per_dim);
       coef *= coef_per_dim;

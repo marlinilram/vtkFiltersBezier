@@ -11,11 +11,10 @@ vtkBezierPatchAdaptor::vtkBezierPatchAdaptor()
 
 vtkBezierPatchAdaptor::~vtkBezierPatchAdaptor()
 {
-  if (this->ControlPointData
-   && this->ControlPointData->GetReferenceCount() == 1)
-  {
-    this->ControlPointData->Delete();
-  }
+  if (this->ControlPointData != NULL)
+    {
+    this->ControlPointData->UnRegister(this);
+    }
 }
 
 void vtkBezierPatchAdaptor::PrintSelf(ostream& os, vtkIndent indent)
@@ -27,7 +26,7 @@ void vtkBezierPatchAdaptor::PrintSelf(ostream& os, vtkIndent indent)
 void vtkBezierPatchAdaptor::SetControlPointData(vtkDataObject* controlPointData)
 {
   this->ControlPointData = controlPointData;
-  controlPointData->Register(this);
+  this->ControlPointData->Register(this);
 }
 
 // ----------------------------------------------------------------------------

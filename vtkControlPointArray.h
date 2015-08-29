@@ -9,9 +9,9 @@
 class vtkDataArray;
 
 template <class Scalar>
-class vtkControlPointArray : 
+class vtkControlPointArray :
   public vtkTypeTemplate<vtkControlPointArray<Scalar>,
-                         vtkMappedDataArray<Scalar>>
+                         vtkMappedDataArray<Scalar> >
 {
 public:
   vtkMappedDataArrayNewInstanceMacro(vtkControlPointArray<Scalar>);

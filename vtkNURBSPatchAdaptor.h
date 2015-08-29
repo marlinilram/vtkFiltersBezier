@@ -137,8 +137,14 @@ protected:
   // Description:
   // This method insert knot value multiple times into the current knot vector.
   void InsertKnotMulti(
-    vtkDataArray* pointsIn, int* knotsLenOld, double* knotsArrOld, int* ctrlPtsNumOld,
-    vtkDataArray* pointsOut, int* knotsLenNew, double* knotsArrNew, int* ctrlPtsNumNew,
+    vtkDataArray* pointsIn,
+    std::vector<int>& knotsLenOld,
+    std::vector<double>& knotsArrOld,
+    std::vector<int>& ctrlPtsNumOld,
+    vtkDataArray* pointsOut,
+    std::vector<int>& knotsLenNew,
+    std::vector<double>& knotsArrNew,
+    std::vector<int>& ctrlPtsNumNew,
     double tNew, int insertDim, int insertTimes, int kSpan = -1, int sMult = -1);
   // Description:
   // This method is a helper function to compute points or derivatives given

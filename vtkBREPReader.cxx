@@ -328,16 +328,13 @@ void vtkBREPReader::HandleCurve(std::ifstream& in, int shapeType, vtkDataObject*
 }
 
 // ----------------------------------------------------------------------
-void vtkBREPReader::HandlePlane(std::ifstream& in, vtkDataObject* out)
+void vtkBREPReader::HandlePlane(std::ifstream& in, vtkDataObject* vtkNotUsed(out))
 {
   std::string out_buffer;
   for (int i = 0; i < 12; ++i)
   {
     in >> out_buffer;
   }
-
-  // to suppress unreference warnings;
-  out = out;
 }
 
 // ----------------------------------------------------------------------------
@@ -492,7 +489,8 @@ void vtkBREPReader::HandleBsplineSurface(std::ifstream& in, vtkDataObject* out)
     }
   }
 
-  vtkSmartPointer<vtkControlPointArray<double>> ctrlPtsInSitu = vtkSmartPointer<vtkControlPointArray<double>>::New();
+  vtkSmartPointer<vtkControlPointArray<double> > ctrlPtsInSitu =
+    vtkSmartPointer<vtkControlPointArray<double> >::New();
   ctrlPtsInSitu->InitializeArray(ctrlPts);
 
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();

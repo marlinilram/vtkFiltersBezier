@@ -26,6 +26,7 @@ template <class Scalar> void vtkControlPointArray<Scalar>
   this->Size = this->MaxId + 1;
   this->NumberOfComponents = 3;
   this->ControlPoints = controlPoints;
+  this->ControlPoints->Register(this);
 }
 
 template <class Scalar> void vtkControlPointArray<Scalar>
@@ -112,7 +113,7 @@ template <class Scalar> vtkIdType vtkControlPointArray<Scalar>
 
 //------------------------------------------------------------------------------
 template <class Scalar> void vtkControlPointArray<Scalar>
-::LookupValue(vtkVariant value, vtkIdList *ids)
+::LookupValue(vtkVariant vtkNotUsed(value), vtkIdList *vtkNotUsed(ids))
 {
   /*
   bool valid = true;
@@ -128,9 +129,6 @@ template <class Scalar> void vtkControlPointArray<Scalar>
       }
     }
   */
-
-  // to suppress unreference warnings;
-  ids = ids;
 }
 
 //------------------------------------------------------------------------------
@@ -167,17 +165,15 @@ template <class Scalar> void vtkControlPointArray<Scalar>
 
 //------------------------------------------------------------------------------
 template <class Scalar> vtkIdType vtkControlPointArray<Scalar>
-::LookupTypedValue(Scalar value)
+::LookupTypedValue(Scalar vtkNotUsed(value))
 {
 //  return this->Lookup(value, 0);
-  // to suppress unreference warnings;
-  value = value;
   return 0;
 }
 
 //------------------------------------------------------------------------------
 template <class Scalar> void vtkControlPointArray<Scalar>
-::LookupTypedValue(Scalar value, vtkIdList *ids)
+::LookupTypedValue(Scalar vtkNotUsed(value), vtkIdList *vtkNotUsed(ids))
 {
   /*
   ids->Reset();
@@ -188,10 +184,6 @@ template <class Scalar> void vtkControlPointArray<Scalar>
     ++index;
     }
   */
-
-  // to suppress unreference warnings;
-  ids = ids;
-  value = value;
 }
 
 //------------------------------------------------------------------------------
@@ -464,4 +456,8 @@ template <class Scalar> vtkControlPointArray<Scalar>
 template <class Scalar> vtkControlPointArray<Scalar>
 ::~vtkControlPointArray()
 {
+  if (this->ControlPoints != NULL)
+    {
+    this->ControlPoints->UnRegister(this);
+    }
 }
